@@ -1,0 +1,50 @@
+.container {
+    text-align: center;
+}
+
+.logo {
+    width: 150px; /* Ajusta el tamaño según lo necesites */
+}
+#boton_centos{
+    background-color: rgb(59, 248, 59);
+  color: rgb(0, 29, 117);
+}
+#boton_centos:hover{
+background-color: rgb(175, 0, 181);
+  color: rgb(247, 121, 4);
+}
+#boton_windows{
+  background-color: rgb(252, 118, 0);
+  color: rgb(255, 230, 8);
+}
+#boton_windows:hover{
+  background-color: rgb(17, 168, 15);
+  color: rgb(6, 61, 242);
+}
+#boton_arch{
+  background-color: rgb(0, 38, 255);
+  color: aqua;
+}
+#boton_arch:hover{
+  background-color: aqua;
+  color: rgb(0, 38, 255);
+}
+
+#boton_fedora{
+  background-color: rgb(255, 255, 255);
+  color: rgb(29, 21, 112);
+}
+#boton_fedora:hover{
+  background-color: rgb(29, 21, 112);
+  color: rgb(255, 255, 255);
+}
+:ing{
+    height: 15%;
+    width: 15%;
+    object-fit: contain;
+}
+.comando{
+    background-color: black;
+    color: rgb(0,255,0);
+
+}
