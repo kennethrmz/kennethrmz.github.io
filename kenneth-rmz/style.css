@@ -1,0 +1,17 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ffffff;
+}
+table {
+    border-collapse: collapse;
+    width: 70%;
+    background-color: #ff0000; /* Color de fondo */
+}
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
