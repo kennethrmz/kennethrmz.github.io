@@ -1,0 +1,259 @@
+
+  <!DOCTYPE html>
+  <html lang="en">
+  <body>
+  <script src="https://unpkg.com/gojs@2.3.17/release/go.js"></script>
+  <p>
+    <b>Diagrama de arbol de las ramificaciones de las distribuciones de Linux 
+    <br>
+    Ramirez Delgado Kenneth Alberto 211951
+    </b>
+  </p>
+  <div id="allSampleContent" class="p-4 w-full">
+
+  <style type="text/css">
+    #myOverviewDiv {
+      position: absolute;
+      width: 200px;
+      height: 100px;
+      top: 10px;
+      left: 10px;
+      background-color: #f2f2f2;
+      z-index: 300; /* make sure its in front */
+      border: solid 1px #7986cb;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500" rel="stylesheet" type="text/css">
+    <script id="code">
+    function init() {
+
+      // Since 2.2 you can also author concise templates with method chaining instead of GraphObject.make
+      // For details, see https://gojs.net/latest/intro/buildingObjects.html
+      const $ = go.GraphObject.make;  // for conciseness in defining templates
+
+      // some constants that will be reused within templates
+      var mt8 = new go.Margin(8, 0, 0, 0);
+      var mr8 = new go.Margin(0, 8, 0, 0);
+      var ml8 = new go.Margin(0, 0, 0, 8);
+      var roundedRectangleParams = {
+        parameter1: 2,  // set the rounded corner
+        spot1: go.Spot.TopLeft, spot2: go.Spot.BottomRight  // make content go all the way to inside edges of rounded corners
+      };
+
+      myDiagram =
+        new go.Diagram("myDiagramDiv",  // the DIV HTML element
+          {
+            // Put the diagram contents at the top center of the viewport
+            initialDocumentSpot: go.Spot.Top,
+            initialViewportSpot: go.Spot.Top,
+            // OR: Scroll to show a particular node, once the layout has determined where that node is
+            // "InitialLayoutCompleted": e => {
+            //  var node = e.diagram.findNodeForKey(28);
+            //  if (node !== null) e.diagram.commandHandler.scrollToPart(node);
+            // },
+            layout:
+              $(go.TreeLayout,  // use a TreeLayout to position all of the nodes
+                {
+                  isOngoing: false,  // don't relayout when expanding/collapsing panels
+                  treeStyle: go.TreeLayout.StyleLastParents,
+                  // properties for most of the tree:
+                  angle: 90,
+                  layerSpacing: 80,
+                  // properties for the "last parents":
+                  alternateAngle: 0,
+                  alternateAlignment: go.TreeLayout.AlignmentStart,
+                  alternateNodeIndent: 15,
+                  alternateNodeIndentPastParent: 1,
+                  alternateNodeSpacing: 15,
+                  alternateLayerSpacing: 40,
+                  alternateLayerSpacingParentOverlap: 1,
+                  alternatePortSpot: new go.Spot(0.001, 1, 20, 0),
+                  alternateChildPortSpot: go.Spot.Left
+                })
+          });
+
+      // This function provides a common style for most of the TextBlocks.
+      // Some of these values may be overridden in a particular TextBlock.
+      function textStyle(field) {
+        return [
+          {
+            font: "12px Roboto, sans-serif", stroke: "rgba(0, 0, 0, .60)",
+            visible: false  // only show textblocks when there is corresponding data for them
+          },
+          new go.Binding("visible", field, val => val !== undefined)
+        ];
+      }
+
+      // define Converters to be used for Bindings
+      function theNationFlagConverter(nation) {
+        return "https://www.nwoods.com/images/emojiflags/" + nation + ".png";
+      }
+
+      // define the Node template
+      myDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          {
+            locationSpot: go.Spot.Top,
+            isShadowed: true, shadowBlur: 1,
+            shadowOffset: new go.Point(0, 1),
+            shadowColor: "rgba(0, 0, 0, .14)",
+            selectionAdornmentTemplate:  // selection adornment to match shape of nodes
+              $(go.Adornment, "Auto",
+                $(go.Shape, "RoundedRectangle", roundedRectangleParams,
+                  { fill: null, stroke: "#7986cb", strokeWidth: 3 }
+                ),
+                $(go.Placeholder)
+              )  // end Adornment
+          },
+          $(go.Shape, "RoundedRectangle", roundedRectangleParams,
+            { name: "SHAPE", fill: "#ffffff", strokeWidth: 0 },
+            // gold if highlighted, white otherwise
+            new go.Binding("fill", "isHighlighted", h => h ? "gold" : "#ffffff").ofObject()
+          ),
+          $(go.Panel, "Vertical",
+            $(go.Panel, "Horizontal",
+              { margin: 8 },
+              $(go.Picture,  // flag image, only visible if a nation is specified
+                { margin: mr8, visible: false, desiredSize: new go.Size(50, 50) },
+                new go.Binding("source", "ima"),
+                new go.Binding("visible", "ima", ima =>!!ima)
+              ),
+              $(go.Panel, "Table",
+                $(go.TextBlock,
+                  {
+                    row: 0, alignment: go.Spot.Left,
+                    font: "16px Roboto, sans-serif",
+                    stroke: "rgba(0, 0, 0, .87)",
+                    maxSize: new go.Size(160, NaN)
+                  },
+                  new go.Binding("text", "name")
+                ),
+                $(go.TextBlock, textStyle("title"),
+                  {
+                    row: 1, alignment: go.Spot.Left,
+                    maxSize: new go.Size(160, NaN)
+                  },
+                  new go.Binding("text", "title")
+                ),
+                $("PanelExpanderButton", "INFO",
+                  { row: 0, column: 1, rowSpan: 2, margin: ml8 }
+                )
+              )
+            ),
+            $(go.Shape, "LineH",
+              {
+                stroke: "rgba(0, 0, 0, .60)", strokeWidth: 1,
+                height: 1, stretch: go.GraphObject.Horizontal
+              },
+              new go.Binding("visible").ofObject("INFO")  // only visible when info is expanded
+            ),
+            $(go.Panel, "Vertical",
+              {
+                name: "INFO",  // identify to the PanelExpanderButton
+                stretch: go.GraphObject.Horizontal,  // take up whole available width
+                margin: 8,
+                defaultAlignment: go.Spot.Left,  // thus no need to specify alignment on each element
+              },
+              $(go.TextBlock, textStyle("headOf"),
+                new go.Binding("text", "headOf", head => "Fundado: " + head)
+              ),
+              $(go.TextBlock, textStyle("boss"),
+                new go.Binding("margin", "headOf", head => mt8), // some space above if there is also a headOf value
+                new go.Binding("text", "boss", boss => {
+                  var boss = myDiagram.model.findNodeDataForKey(boss);
+                  if (boss !== null) {
+                    return "Viene de: " + boss.name;
+                  }
+                  return "";
+                })
+              )
+            )
+          )
+        );
+
+      // define the Link template, a simple orthogonal line
+      myDiagram.linkTemplate =
+        $(go.Link, go.Link.Orthogonal,
+          { corner: 5, selectable: false },
+          $(go.Shape, { strokeWidth: 3, stroke: "#424242" }));  // dark gray, rounded corner links
+
+
+      // set up the nodeDataArray, describing each person/position
+      var nodeDataArray = [
+        { key: 0, name: "LINUX", ima: "https://upload.wikimedia.org/wikipedia/commons/d/dd/Linux_logo.jpg", 
+        title: "sistema operativo de código abierto para computadoras, servidores, mainframes, dispositivos móviles y dispositivos embebidos.",  },
+        { key: 1, boss: 0, name: "DEBIAN", ima: "https://www.debian.org/Pics/debian-logo-1024x576.png", 
+        title: "Sistema operativo libre, desarrollado por miles de voluntarios de todo el mundo, que colaboran a través de Internet.",  },
+        { key: 3, boss: 1, name: "UBUNTU", ima: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Logo-ubuntu_cof-orange-hex.svg/2048px-Logo-ubuntu_cof-orange-hex.svg.png",
+         title: "Está orientado al usuario promedio, con un fuerte enfoque en la facilidad de uso y en mejorar la experiencia del usuario." },
+        { key: 7, boss: 1, name: "KALI LINUX", ima: "https://seeklogo.com/images/K/kali-linux-logo-AED181186E-seeklogo.com.png", 
+        title: "Diseñada principalmente para la auditoría y seguridad informática en general. Fue fundada y es mantenida por Offensive Security Ltd.",  },
+        { key: 31, boss: 3, name: "LUBUNTU", ima: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Lubuntu_logo_only.svg", 
+        title: "Emplea el entorno de escritorio LXQt en lugar del entorno GNOME de Ubuntu." },
+        { key: 32, boss: 3, name: "KUBUNTU", ima: "https://upload.wikimedia.org/wikipedia/commons/1/1f/Kubuntu_logo.svg", 
+        title: " Es un derivado oficial de Ubuntu y su nombre significa hacia la humanidad en el idioma bemba, y se deriva de ubuntu." },
+        { key: 33, boss: 3, name: "LINUX MINT", ima: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Linux_Mint_logo_without_wordmark.svg/512px-Linux_Mint_logo_without_wordmark.svg.png", 
+        title: "Tiene por objetivo proveer «un sistema operativo moderno, elegante y cómodo que sea tanto poderoso como fácil de usar" },
+        { key: 34, boss: 3, name: "XUBUNTU", ima: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Xubuntu_logo.svg/2048px-Xubuntu_logo.svg.png", 
+        title: "Está mantenida por la comunidad y es un derivado de Ubuntu oficialmente reconocido por Canonical, usando el entorno de escritorio Xfce." },
+        { key: 35, boss: 3, name: "POP OS", ima: "https://www.muylinux.com/wp-content/uploads/2020/10/Pop-OS.jpg", 
+        title: "es una distribución de Linux gratuita y de código abierto, basada en Ubuntu, con un escritorio GNOME personalizado." },
+        { key: 36, boss: 35, name: "REDHAT", ima: "https://media.datacenterdynamics.com/media/images/Red-Hat-logo_2.original.jpg",
+         title: "Es una multinacional estadounidense de software que provee software de código abierto principalmente a empresas. " },
+        { key: 37, boss: 35, name: "SUSE", ima: "https://www.muylinux.com/wp-content/uploads/2017/09/SUSE-3.png",
+         title: "Es una de las distribuciones Linux más antiguas existentes,​ entre las principales virtudes de esta distribución se encuentra el que sea una de las más" },
+        { key: 38, boss: 35, name: "ARCH LINUX", ima: "data:image/png;base64,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",
+         title: "Es una distribución Linux de propósito general para arquitectura x86-64​ orientada a «usuarios avanzados»" },
+      
+      
+      ];
+
+      // create the Model with data for the tree, and assign to the Diagram
+      myDiagram.model =
+        new go.TreeModel(
+          {
+            nodeParentKeyProperty: "boss",  // this property refers to the parent node data
+            nodeDataArray: nodeDataArray
+          });
+
+      // Overview
+      myOverview =
+        new go.Overview("myOverviewDiv",  // the HTML DIV element for the Overview
+          { observed: myDiagram, contentAlignment: go.Spot.Center });   // tell it which Diagram to show and pan
+    }
+
+    // the Search functionality highlights all of the nodes that have at least one data property match a RegExp
+    function searchDiagram() {  // called by button
+      var input = document.getElementById("mySearch");
+      if (!input) return;
+      myDiagram.focus();
+
+      myDiagram.startTransaction("highlight search");
+
+      if (input.value) {
+        // search four different data properties for the string, any of which may match for success
+        // create a case insensitive RegExp from what the user typed
+        var safe = input.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var regex = new RegExp(safe, "i");
+        var results = myDiagram.findNodesByExample({ name: regex },
+          { nation: regex },
+          { title: regex },
+          { headOf: regex });
+        myDiagram.highlightCollection(results);
+        // try to center the diagram at the first node that was found
+        if (results.count > 0) myDiagram.centerRect(results.first().actualBounds);
+      } else {  // empty string only clears highlighteds collection
+        myDiagram.clearHighlighteds();
+      }
+
+      myDiagram.commitTransaction("highlight search");
+    }
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+
+<div id="sample" style="position: relative;">
+  <div id="myDiagramDiv" style="background-color: rgb(242, 242, 242); border: 1px solid black; width: 100%; height: 700px; position: relative; -webkit-tap-highlight-color: rgba(255, 255, 255, 0);"><canvas tabindex="0" width="1296" height="851" style="position: absolute; top: 0px; left: 0px; z-index: 2; user-select: none; touch-action: none; width: 1037px; height: 681px;"></canvas><div style="position: absolute; overflow: auto; width: 1054px; height: 698px; z-index: 1;"><div style="position: absolute; width: 3433.65px; height: 1590.37px;"></div></div></div>
+  <div id="myOverviewDiv" style="-webkit-tap-highlight-color: rgba(255, 255, 255, 0);"><canvas tabindex="0" width="198" height="98" style="position: absolute; top: 0px; left: 0px; z-index: 2; user-select: none; touch-action: none; width: 198px; height: 98px;"></canvas><div style="position: absolute; overflow: auto; width: 198px; height: 98px; z-index: 1;"><div style="position: absolute; width: 1px; height: 1px;"></div></div></div> <!-- Styled in a <style> tag at the top of the html page -->
+
+  </body>
+  </html>
