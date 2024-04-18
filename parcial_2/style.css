@@ -1,0 +1,11 @@
+.container {
+    text-align: center;
+}
+
+.logo {
+    width: 150px; /* Ajusta el tamaño según lo necesites */
+}
+body {
+    background-color: whitesmoke; /* Cambia #f0f0f0 por el color que desees */
+    margin: auto;
+  }
